@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keman ve Müzik Teorisi Pratiği</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary: #4361ee;
+            --primary-hover: #3a56d4;
+            --secondary: #7209b7;
+            --success: #2a9d8f;
+            --danger: #e76f51;
+            --text-main: #2b2d42;
+            --text-muted: #8d99ae;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            position: relative;
+            min-height: 700px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ekranlar */
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 40px 30px;
+            animation: fadeIn 0.4s ease forwards;
+            flex: 1;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Başlıklar ve Metinler */
+        h1 {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        /* Butonlar */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-bottom: 16px;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-menu {
+            height: 80px;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        /* Geri Sayım Ekranı */
+        #countdownScreen {
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .countdown-number {
+            font-size: 120px;
+            font-weight: 800;
+            color: var(--primary);
+            animation: popIn 1s infinite;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* Oyun Ekranı Üst Panel */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: var(--bg-color);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-exit {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-exit:hover {
+            background-color: #c95b40;
+        }
+
+        .timer, .score {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .timer span { color: var(--danger); font-size: 20px; }
+        .score .correct { color: var(--success); }
+        .score .wrong { color: var(--danger); }
+
+        /* Oyun Alanı (Orta Kısım) */
+        .game-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            min-height: 250px;
+            background-color: var(--bg-color);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        /* Seçenekler (Alt Kısım) */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: white;
+            color: var(--text-main);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .option-btn.correct-ans {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .option-btn.wrong-ans {
+            background-color: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* Oyun 3 Özel Soru Metni */
+        #keySignatureText {
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            padding: 15px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+        
+        .game3-option {
+            font-size: 13px;
+            padding: 15px 5px;
+        }
+
+        /* SVG Stilleri */
+        svg {
+            width: 100%;
+            height: 100%;
+            max-width: 400px;
+            max-height: 340px;
+        }
+
+        .staff-line, .ledger-line {
+            stroke: #2b2d42;
+            stroke-width: 2;
+        }
+        
+        /* Klavye Telleri */
+        .string-line { stroke: #cbd5e1; }
+        .string-g { stroke-width: 5; }
+        .string-d { stroke-width: 4; }
+        .string-a { stroke-width: 3; }
+        .string-e { stroke-width: 2; }
+
+        .note-head {
+            fill: var(--primary);
+            /* Tarayıcı buglarına sebep olan transform-origin kaldırıldı */
+        }
+
+        /* Klavye Hedef Nota Noktası */
+        .finger-dot {
+            fill: #f59e0b;
+            stroke: #d97706;
+            stroke-width: 3;
+        }
+        
+        .clef {
+            font-family: serif;
+            font-size: 90px;
+            fill: #2b2d42;
+        }
+
+        /* Diyez ve Bemol İşaretleri Stili */
+        .accidental {
+            font-family: 'Times New Roman', serif;
+            font-size: 42px;
+            fill: #2b2d42;
+            font-weight: bold;
+        }
+
+        .string-label {
+            font-size: 16px;
+            font-weight: bold;
+            fill: var(--text-muted);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Sonuç Ekranı */
+        .result-stats {
+            text-align: center;
+            margin: 30px 0;
+            padding: 30px;
+            background-color: var(--bg-color);
+            border-radius: 16px;
+        }
+
+        .result-stats p {
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- ANA MENÜ EKRANI -->
+        <div id="menuScreen" class="screen active">
+            <h1>Müzik Teorisi Pratiği</h1>
+            <p class="subtitle">Çalışmak istediğin alanı seç ve antrenmana başla</p>
+            
+            <button class="btn btn-menu" onclick="app.startPreparation(1)">1: Porte Okuma Oyunu</button>
+            <button class="btn btn-menu" onclick="app.startPreparation(2)">2: Keman Klavyesi Oyunu</button>
+            <button class="btn btn-menu" onclick="app.startPreparation(3)">3: Majör/Minör Donanım Oyunu</button>
+        </div>
+
+        <!-- GERİ SAYIM EKRANI -->
+        <div id="countdownScreen" class="screen">
+            <div class="countdown-number" id="countdownValue">3</div>
+        </div>
+
+        <!-- OYUN EKRANI -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <!-- ÇIKIŞ BUTONU -->
+                <button class="btn-exit" onclick="app.exitGame()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Çıkış
+                </button>
+                <div class="timer">Süre: <span id="timeRemaining">60</span>s</div>
+                <div class="score">
+                    <span class="correct" id="correctScore">0</span> D / 
+                    <span class="wrong" id="wrongScore">0</span> Y
+                </div>
+            </div>
+
+            <div class="game-area" id="gameArea">
+                <!-- SVG veya Metin içeriği dinamik olarak buraya eklenecek -->
+            </div>
+
+            <div class="options-grid" id="optionsGrid">
+                <!-- Seçenek butonları dinamik olarak buraya eklenecek -->
+            </div>
+        </div>
+
+        <!-- SONUÇ EKRANI -->
+        <div id="resultScreen" class="screen">
+            <h1>Süre Doldu!</h1>
+            <p class="subtitle">İşte performans sonucun</p>
+            
+            <div class="result-stats">
+                <p>Oyun Modu: <span id="resultMode" style="color: var(--primary);"></span></p>
+                <p>Doğru: <span id="resultCorrect" class="correct" style="color: var(--success);">0</span></p>
+                <p>Yanlış: <span id="resultWrong" class="wrong" style="color: var(--danger);">0</span></p>
+            </div>
+
+            <button class="btn" onclick="app.replayGame()">Tekrar Oyna</button>
+            <button class="btn" style="background-color: var(--text-muted);" onclick="app.showScreen('menuScreen')">Ana Menüye Dön</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- VERİ YAPILARI (HİÇBİR EKSİLTME YOKTUR) --- //
+
+        const notesData = [
+            // SOL (G) TELİ - X: 40
+            { name: "Sol", staffY: 150, ledgers: [120, 140], stringX: 40,  fingerY: 35  },  // G3 (Boş Tel)
+            { name: "La",  staffY: 140, ledgers: [120, 140], stringX: 40,  fingerY: 120 }, // A3 (1. parmak)
+            { name: "Si",  staffY: 130, ledgers: [120],      stringX: 40,  fingerY: 190 }, // B3 (2. parmak)
+            { name: "Do",  staffY: 120, ledgers: [120],      stringX: 40,  fingerY: 225 }, // C4 (3. parmak, Bitişik)
+            { name: "Re",  staffY: 110, ledgers: [],         stringX: 40,  fingerY: 295 }, // D4 (4. parmak)
+
+            // RE (D) TELİ - X: 110
+            { name: "Re",  staffY: 110, ledgers: [],         stringX: 110, fingerY: 35  },  // D4 (Boş Tel)
+            { name: "Mi",  staffY: 100, ledgers: [],         stringX: 110, fingerY: 120 }, // E4 (1. parmak)
+            { name: "Fa",  staffY: 90,  ledgers: [],         stringX: 110, fingerY: 155 }, // F4 (2. parmak, Bitişik)
+            { name: "Sol", staffY: 80,  ledgers: [],         stringX: 110, fingerY: 225 }, // G4 (3. parmak)
+            { name: "La",  staffY: 70,  ledgers: [],         stringX: 110, fingerY: 295 }, // A4 (4. parmak)
+            
+            // LA (A) TELİ - X: 180
+            { name: "La",  staffY: 70,  ledgers: [],         stringX: 180, fingerY: 35  },  // A4 (Boş Tel)
+            { name: "Si",  staffY: 60,  ledgers: [],         stringX: 180, fingerY: 120 }, // B4 (1. parmak)
+            { name: "Do",  staffY: 50,  ledgers: [],         stringX: 180, fingerY: 155 }, // C5 (2. parmak, Bitişik)
+            { name: "Re",  staffY: 40,  ledgers: [],         stringX: 180, fingerY: 225 }, // D5 (3. parmak)
+            { name: "Mi",  staffY: 30,  ledgers: [],         stringX: 180, fingerY: 295 }, // E5 (4. parmak)
+            
+            // Mİ (E) TELİ - X: 250
+            { name: "Mi",  staffY: 30,  ledgers: [],         stringX: 250, fingerY: 35  },  // E5 (Boş Tel)
+            { name: "Fa",  staffY: 20,  ledgers: [],         stringX: 250, fingerY: 85  },  // F5 (1. parmak, Eşiğe yakın)
+            { name: "Sol", staffY: 10,  ledgers: [],         stringX: 250, fingerY: 155 }, // G5 (2. parmak)
+            { name: "La",  staffY: 0,   ledgers: [0],        stringX: 250, fingerY: 225 }, // A5 (3. parmak)
+            { name: "Si",  staffY: -10, ledgers: [0],        stringX: 250, fingerY: 295 }  // B5 (4. parmak)
+        ];
+
+        // Majör / Minör Donanım Verileri (SVG çizimi için type ve count içerir)
+        const keySignaturesData = [
+            { text: "Donanım: Yok (0 Arıza)", answer: "Do Majör / La Minör", type: "none", count: 0 },
+            { text: "Donanım: 1 Diyez (Fa#)", answer: "Sol Majör / Mi Minör", type: "sharp", count: 1 },
+            { text: "Donanım: 2 Diyez (Fa#, Do#)", answer: "Re Majör / Si Minör", type: "sharp", count: 2 },
+            { text: "Donanım: 3 Diyez (Fa#, Do#, Sol#)", answer: "La Majör / Fa# Minör", type: "sharp", count: 3 },
+            { text: "Donanım: 4 Diyez (Fa#, Do#, Sol#, Re#)", answer: "Mi Majör / Do# Minör", type: "sharp", count: 4 },
+            { text: "Donanım: 5 Diyez (Fa#, Do#, Sol#, Re#, La#)", answer: "Si Majör / Sol# Minör", type: "sharp", count: 5 },
+            { text: "Donanım: 6 Diyez (Fa#, Do#, Sol#, Re#, La#, Mi#)", answer: "Fa# Majör / Re# Minör", type: "sharp", count: 6 },
+            { text: "Donanım: 7 Diyez (Fa#, Do#, Sol#, Re#, La#, Mi#, Si#)", answer: "Do# Majör / La# Minör", type: "sharp", count: 7 },
+            { text: "Donanım: 1 Bemol (Si b)", answer: "Fa Majör / Re Minör", type: "flat", count: 1 },
+            { text: "Donanım: 2 Bemol (Si b, Mi b)", answer: "Si Bemol Majör / Sol Minör", type: "flat", count: 2 },
+            { text: "Donanım: 3 Bemol (Si b, Mi b, La b)", answer: "Mi Bemol Majör / Do Minör", type: "flat", count: 3 },
+            { text: "Donanım: 4 Bemol (Si b, Mi b, La b, Re b)", answer: "La Bemol Majör / Fa Minör", type: "flat", count: 4 },
+            { text: "Donanım: 5 Bemol (Si b, Mi b, La b, Re b, Sol b)", answer: "Re Bemol Majör / Si Bemol Minör", type: "flat", count: 5 },
+            { text: "Donanım: 6 Bemol (Si b, Mi b, La b, Re b, Sol b, Do b)", answer: "Sol Bemol Majör / Mi Bemol Minör", type: "flat", count: 6 },
+            { text: "Donanım: 7 Bemol (Si b, Mi b, La b, Re b, Sol b, Do b, Fa b)", answer: "Do Bemol Majör / La Bemol Minör", type: "flat", count: 7 }
+        ];
+
+        // Nota isim havuzu
+        const noteNames = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+
+        // Diyez ve Bemol sıralamalarının Y koordinatları (Fa, Do, Sol, Re, La, Mi, Si) ve (Si, Mi, La, Re, Sol, Do, Fa)
+        const sharpPositionsY = [20, 50, 10, 40, 70, 30, 60]; 
+        const flatPositionsY = [60, 30, 70, 40, 80, 50, 90]; 
+
+        // --- UYGULAMA MANTIĞI --- //
+        const app = {
+            currentMode: 0,
+            score: { correct: 0, wrong: 0 },
+            timeLeft: 60,
+            timerInterval: null,
+            countdownInterval: null,
+            currentQuestionData: null,
+            isAnswering: false,
+
+            // Ekran Yönetimi
+            showScreen: function(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenId).classList.add('active');
+            },
+
+            // Oyuna Hazırlık
+            startPreparation: function(mode) {
+                this.currentMode = mode;
+                this.showScreen('countdownScreen');
+                
+                let count = 3;
+                const countElement = document.getElementById('countdownValue');
+                countElement.innerText = count;
+
+                if (this.countdownInterval) clearInterval(this.countdownInterval);
+
+                this.countdownInterval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countElement.innerText = count;
+                    } else {
+                        clearInterval(this.countdownInterval);
+                        this.startGame();
+                    }
+                }, 1000);
+            },
+
+            // Oyundan Çıkış ve Ana Menüye Dönüş
+            exitGame: function() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                if (this.countdownInterval) clearInterval(this.countdownInterval);
+                this.showScreen('menuScreen');
+            },
+
+            // Tekrar Oyna
+            replayGame: function() {
+                this.startPreparation(this.currentMode);
+            },
+
+            // Oyunu Başlat
+            startGame: function() {
+                this.score.correct = 0;
+                this.score.wrong = 0;
+                this.timeLeft = 60;
+                this.updateScoreUI();
+                this.updateTimeUI();
+                
+                this.showScreen('gameScreen');
+                this.nextQuestion();
+
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                
+                this.timerInterval = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateTimeUI();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            },
+
+            // Oyunu Bitir
+            endGame: function() {
+                clearInterval(this.timerInterval);
+                
+                const modeNames = ["", "Porte Okuma Oyunu", "Keman Klavyesi Oyunu", "Majör/Minör Donanım Oyunu"];
+                document.getElementById('resultMode').innerText = modeNames[this.currentMode];
+                document.getElementById('resultCorrect').innerText = this.score.correct;
+                document.getElementById('resultWrong').innerText = this.score.wrong;
+                
+                this.showScreen('resultScreen');
+            },
+
+            // UI Güncellemeleri
+            updateScoreUI: function() {
+                document.getElementById('correctScore').innerText = this.score.correct;
+                document.getElementById('wrongScore').innerText = this.score.wrong;
+            },
+            
+            updateTimeUI: function() {
+                document.getElementById('timeRemaining').innerText = this.timeLeft;
+            },
+
+            // Yeni Soru Üretimi
+            nextQuestion: function() {
+                this.isAnswering = false;
+                const gameArea = document.getElementById('gameArea');
+                gameArea.innerHTML = "";
+                
+                if (this.currentMode === 1) {
+                    this.generateStaffQuestion(gameArea);
+                } else if (this.currentMode === 2) {
+                    this.generateFingerboardQuestion(gameArea);
+                } else if (this.currentMode === 3) {
+                    this.generateKeySignatureQuestion(gameArea);
+                }
+            },
+
+            // --- BÖLÜM 1: PORTE OKUMA OYUNU --- //
+            generateStaffQuestion: function(container) {
+                const randomNote = notesData[Math.floor(Math.random() * notesData.length)];
+                this.currentQuestionData = { answer: randomNote.name };
+
+                let svgHTML = `<svg viewBox="0 -30 300 220" xmlns="http://www.w3.org/2000/svg">`;
+                svgHTML += `<text x="10" y="115" class="clef">𝄞</text>`;
+                
+                // Ana porte çizgileri
+                const lineYs = [20, 40, 60, 80, 100];
+                lineYs.forEach(y => {
+                    svgHTML += `<line x1="0" y1="${y}" x2="300" y2="${y}" class="staff-line" />`;
+                });
+
+                // Ek Çizgiler (Ledger Lines)
+                randomNote.ledgers.forEach(y => {
+                    svgHTML += `<line x1="120" y1="${y}" x2="180" y2="${y}" class="ledger-line" />`;
+                });
+
+                // Natanın güvenli bir şekilde kendi etrafında dönmesini sağlayan SVG grup yaklaşımı.
+                svgHTML += `
+                    <g transform="rotate(-15, 150, ${randomNote.staffY})">
+                        <ellipse cx="150" cy="${randomNote.staffY}" rx="15" ry="10.5" class="note-head" />
+                    </g>
+                `;
+                
+                svgHTML += `</svg>`;
+                container.innerHTML = svgHTML;
+                this.renderOptions(randomNote.name, noteNames, false);
+            },
+
+            // --- BÖLÜM 2: KEMAN KLAVYESİ OYUNU --- //
+            generateFingerboardQuestion: function(container) {
+                const randomNote = notesData[Math.floor(Math.random() * notesData.length)];
+                this.currentQuestionData = { answer: randomNote.name };
+
+                let svgHTML = `<svg viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg">`;
+                
+                svgHTML += `
+                    <text x="40" y="15" text-anchor="middle" class="string-label">Sol</text>
+                    <text x="110" y="15" text-anchor="middle" class="string-label">Re</text>
+                    <text x="180" y="15" text-anchor="middle" class="string-label">La</text>
+                    <text x="250" y="15" text-anchor="middle" class="string-label">Mi</text>
+                `;
+
+                svgHTML += `<rect x="15" y="40" width="260" height="300" rx="20" fill="#4a352a" />`;
+                svgHTML += `<line x1="15" y1="55" x2="275" y2="55" stroke="#d4c4b7" stroke-width="6" />`;
+
+                svgHTML += `<line x1="40" y1="35" x2="40" y2="340" class="string-line string-g" />`;
+                svgHTML += `<line x1="110" y1="35" x2="110" y2="340" class="string-line string-d" />`;
+                svgHTML += `<line x1="180" y1="35" x2="180" y2="340" class="string-line string-a" />`;
+                svgHTML += `<line x1="250" y1="35" x2="250" y2="340" class="string-line string-e" />`;
+
+                const guideDots = [
+                    {x: 40, y: 120}, {x: 40, y: 190}, {x: 40, y: 225}, {x: 40, y: 295},
+                    {x: 110, y: 120}, {x: 110, y: 155}, {x: 110, y: 225}, {x: 110, y: 295},
+                    {x: 180, y: 120}, {x: 180, y: 155}, {x: 180, y: 225}, {x: 180, y: 295},
+                    {x: 250, y: 85}, {x: 250, y: 155}, {x: 250, y: 225}, {x: 250, y: 295}
+                ];
+
+                guideDots.forEach(dot => {
+                    svgHTML += `<circle cx="${dot.x}" cy="${dot.y}" r="6" fill="rgba(255, 255, 255, 0.15)" />`;
+                });
+
+                const targetR = randomNote.fingerY === 35 ? 14 : 12;
+                svgHTML += `<circle cx="${randomNote.stringX}" cy="${randomNote.fingerY}" r="${targetR}" class="finger-dot" />`;
+                svgHTML += `<text x="${randomNote.stringX}" y="${randomNote.fingerY}" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="bold" fill="#ffffff" font-family="sans-serif">?</text>`;
+                
+                svgHTML += `</svg>`;
+                container.innerHTML = svgHTML;
+                this.renderOptions(randomNote.name, noteNames, false);
+            },
+
+            // --- BÖLÜM 3: MAJÖR / MİNÖR DONANIM OYUNU --- //
+            generateKeySignatureQuestion: function(container) {
+                const randomSignature = keySignaturesData[Math.floor(Math.random() * keySignaturesData.length)];
+                this.currentQuestionData = { answer: randomSignature.answer };
+
+                let htmlContent = `<div style="display: flex; flex-direction: column; align-items: center; width: 100%;">`;
+                
+                let svgHTML = `<svg viewBox="0 -10 300 140" xmlns="http://www.w3.org/2000/svg" style="max-height: 180px;">`;
+                svgHTML += `<text x="10" y="115" class="clef">𝄞</text>`;
+                
+                const lineYs = [20, 40, 60, 80, 100];
+                lineYs.forEach(y => {
+                    svgHTML += `<line x1="0" y1="${y}" x2="300" y2="${y}" class="staff-line" />`;
+                });
+
+                const startX = 75;
+                const stepX = 18;
+
+                if (randomSignature.type === "sharp" && randomSignature.count > 0) {
+                    for (let i = 0; i < randomSignature.count; i++) {
+                        svgHTML += `<text x="${startX + (i * stepX)}" y="${sharpPositionsY[i]}" class="accidental" dominant-baseline="central">♯</text>`;
+                    }
+                } else if (randomSignature.type === "flat" && randomSignature.count > 0) {
+                    for (let i = 0; i < randomSignature.count; i++) {
+                        svgHTML += `<text x="${startX + (i * stepX)}" y="${flatPositionsY[i] - 10}" class="accidental" dominant-baseline="central">♭</text>`;
+                    }
+                }
+
+                svgHTML += `</svg>`;
+                
+                htmlContent += svgHTML;
+                htmlContent += `<div id="keySignatureText">${randomSignature.text}</div>`;
+                htmlContent += `</div>`;
+                
+                container.innerHTML = htmlContent;
+
+                const allAnswers = keySignaturesData.map(item => item.answer);
+                this.renderOptions(randomSignature.answer, allAnswers, true);
+            },
+
+            // --- ŞIKLARIN OLUŞTURULMASI VE KONTROLÜ --- //
+            renderOptions: function(correctAnswer, sourcePool, isGame3) {
+                let wrongOptions = sourcePool.filter(opt => opt !== correctAnswer);
+                this.shuffleArray(wrongOptions);
+                
+                let options = [correctAnswer, wrongOptions[0], wrongOptions[1], wrongOptions[2]];
+                this.shuffleArray(options);
+
+                const optionsGrid = document.getElementById('optionsGrid');
+                optionsGrid.innerHTML = "";
+
+                options.forEach(option => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn' + (isGame3 ? ' game3-option' : '');
+                    btn.innerText = option;
+                    btn.onclick = () => this.handleAnswer(btn, option, correctAnswer);
+                    optionsGrid.appendChild(btn);
+                });
+            },
+
+            handleAnswer: function(buttonElement, selectedAnswer, correctAnswer) {
+                if (this.isAnswering) return; 
+                this.isAnswering = true;
+
+                if (selectedAnswer === correctAnswer) {
+                    buttonElement.classList.add('correct-ans');
+                    this.score.correct++;
+                } else {
+                    buttonElement.classList.add('wrong-ans');
+                    this.score.wrong++;
+                    
+                    const buttons = document.querySelectorAll('.option-btn');
+                    buttons.forEach(btn => {
+                        if (btn.innerText === correctAnswer) {
+                            btn.classList.add('correct-ans');
+                        }
+                    });
+                }
+
+                this.updateScoreUI();
+
+                setTimeout(() => {
+                    if (this.timeLeft > 0) {
+                        this.nextQuestion();
+                    }
+                }, 600);
+            },
+
+            shuffleArray: function(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+        };
+    </script>
+</body>
+</html>
